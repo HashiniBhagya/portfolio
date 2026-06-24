@@ -989,3 +989,34 @@ body {
     text-align: center;
 }
 
+footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border-dark);
+    color: var(--text-gray);
+}
+
+footer .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-social {
+    display: flex;
+    gap: 1rem;
+}
+
+.footer-social a {
+    color: var(--text-gray);
+    transition: all 0.3s;
+    font-size: 1.2rem;
+}
+
+.footer-social a:hover {
+    color: var(--primary);
+    transform: translateY(-3px);
+}
+
