@@ -699,3 +699,65 @@ body {
     border: 1px solid var(--border-dark);
 }
 
+.competencies-section {
+    background: var(--card-bg-dark);
+    border: 1px solid var(--border-dark);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-top: 1rem;
+}
+
+.competencies-section h3 {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: var(--primary);
+}
+
+.competencies-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.competency-group {
+    background: var(--bg-darker);
+    border: 1px solid var(--border-dark);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.competency-group:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+    box-shadow: 0 5px 20px rgba(99, 102, 241, 0.1);
+}
+
+.competency-group h4 {
+    color: var(--primary);
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+}
+
+.competency-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.competency-tags span {
+    background: var(--card-bg-dark);
+    padding: 0.3rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    border: 1px solid var(--border-dark);
+    transition: all 0.3s;
+}
+
+.competency-tags span:hover {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.05);
+    border-color: var(--primary);
+}
