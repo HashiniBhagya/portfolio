@@ -144,3 +144,122 @@ styleParticles.textContent = `
 document.head.appendChild(styleParticles);
 
 createParticles();
+
+function revealOnScroll() {
+    const reveals = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-rotate');
+    
+    reveals.forEach(element => {
+        const windowHeight = window.innerHeight;
+        const elementTop = element.getBoundingClientRect().top;
+        const elementBottom = element.getBoundingClientRect().bottom;
+        const elementVisible = 120;
+        
+        if (elementTop < windowHeight - elementVisible && elementBottom > 0) {
+            element.classList.add('active');
+        }else{
+            element.classList.remove('active');
+        }
+    });
+    
+}window.addEventListener('scroll', revealOnScroll);
+
+function animateCounters() {
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const rect = counter.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+   
+        const isVisible = rect.top < windowHeight - 50 && rect.bottom > 50;
+        
+        if (isVisible) {
+            
+            if (!counter.classList.contains('is-animating') && !counter.classList.contains('animated')) {
+                counter.classList.add('is-animating'); 
+                let current = 0;
+                const increment = target / 40; 
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        counter.textContent = target;
+                        clearInterval(timer);
+                        counter.classList.remove('is-animating');
+                        counter.classList.add('animated'); 
+                    } else {
+                        counter.textContent = Math.floor(current);
+                    }
+                }, 30);
+            }
+        } else {
+           
+            counter.classList.remove('animated');
+            counter.classList.remove('is-animating');
+            counter.textContent = "0";
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    const sections = document.querySelectorAll('.section');
+    sections.forEach((section, index) => {
+        if (index % 2 === 0) {
+            section.classList.add('reveal');
+        } else {
+            section.classList.add('reveal');
+        }
+    });
+    
+    document.querySelectorAll('.edu-card').forEach((card, index) => {
+        if (index % 2 === 0) {
+            card.classList.add('reveal-left');
+        } else {
+            card.classList.add('reveal-right');
+        }
+    });
+    
+    document.querySelectorAll('.project-card').forEach(card => {
+        card.classList.add('reveal-scale');
+    });
+    
+    document.querySelectorAll('.competency-group').forEach((group, index) => {
+        group.classList.add('reveal');
+        group.style.transitionDelay = (index * 0.1) + 's';
+    });
+   
+    document.querySelectorAll('.skill-category').forEach((category, index) => {
+        category.classList.add('reveal');
+        category.style.transitionDelay = (index * 0.15) + 's';
+    });
+ 
+    document.querySelector('.about-image')?.classList.add('reveal-left');
+    document.querySelector('.about-text')?.classList.add('reveal-right');
+  
+    document.querySelector('.contact-info')?.classList.add('reveal-left');
+    document.querySelector('.contact-form')?.classList.add('reveal-right');
+  
+    document.querySelectorAll('.logo-item').forEach((item, index) => {
+        item.classList.add('reveal-scale');
+        item.style.transitionDelay = (index * 0.05) + 's';
+    });
+
+    setTimeout(() => {
+        revealOnScroll();
+        animateCounters();
+    }, 100);
+});
+
+window.addEventListener('scroll', () => {
+    revealOnScroll();
+    animateCounters();
+});
+
+document.querySelectorAll(".logo-item").forEach(item => {
+    item.addEventListener("mouseenter", function() {
+        this.style.animation = "float-card 0.6s ease";
+    });
+});
+
+console.log("🚀 Portfolio loaded successfully!");
+console.log("👩‍💻 Built with ❤️ by Hashini Bhagya");
