@@ -96,3 +96,51 @@ window.addEventListener("scroll", () => {
     revealOnScroll();
     animateCounters();
 });
+
+const contactForm = document.getElementById("contactForm");
+const formMessage = document.getElementById("formMessage");
+
+contactForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    formMessage.textContent = "✨ Message sent! I'll get back to you soon.";
+    formMessage.style.color = "#10b981";
+    contactForm.reset();
+    setTimeout(() => {
+        formMessage.textContent = "";
+    }, 3000);
+});
+
+function createParticles() {
+    const container = document.querySelector(".particles-container");
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement("div");
+        particle.className = "particle";
+        particle.style.position = "absolute";
+        particle.style.width = (2 + Math.random() * 3) + "px";
+        particle.style.height = particle.style.width;
+        particle.style.background = `radial-gradient(circle, #6366f1, #8b5cf6)`;
+        particle.style.borderRadius = "50%";
+        particle.style.left = Math.random() * 100 + "%";
+        particle.style.top = Math.random() * 100 + "%";
+        particle.style.opacity = Math.random() * 0.4;
+        particle.style.animation = `floatParticle ${10 + Math.random() * 15}s linear infinite`;
+        particle.style.animationDelay = Math.random() * 5 + "s";
+        container.appendChild(particle);
+    }
+}
+
+const styleParticles = document.createElement("style");
+styleParticles.textContent = `
+    @keyframes floatParticle {
+        0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+        10% { opacity: 0.5; }
+        90% { opacity: 0.5; }
+        100% { transform: translateY(-100vh) translateX(${Math.random() * 100 - 50}px) rotate(720deg); opacity: 0; }
+    }
+    .particle {
+        pointer-events: none;
+    }
+`;
+document.head.appendChild(styleParticles);
+
+createParticles();
