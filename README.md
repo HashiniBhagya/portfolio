@@ -39,7 +39,7 @@ portfolio/
 
 │   └── Hashini_Silva_Professional_CV.pdf
 
-├── .github/workflows/ci-cd.yml
+├── .github/workflows/deploy.yaml
 
 └── README.md
 
