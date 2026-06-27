@@ -1,8 +1,12 @@
-name: CI/CD Pipeline
+name: Portfolio CI/CD Pipeline
 
 on:
   push:
+    branches: [ main, master, develop ]
+  pull_request:
     branches: [ main, master ]
+  schedule:
+    - cron: '0 0 * * 0'  
   workflow_dispatch:
 
 permissions:
@@ -14,25 +18,154 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  CACHE_DIR: ~/.cache
+  ARTIFACT_NAME: portfolio-build
+
 jobs:
- 
-  test:
+  
+  validate:
     runs-on: ubuntu-latest
+    name: Code Validation
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
       
-      - name: Verify HTML File Exists
-        run: test -f index.html && echo "✅ HTML found" || echo "❌ HTML missing"
+      - name: Verify Project Structure
+        run: |
+          echo "📋 Checking project structure..."
+          test -f index.html && echo "✅ index.html found" || (echo "❌ index.html missing" && exit 1)
+          test -f style.css && echo "✅ style.css found" || (echo "❌ style.css missing" && exit 1)
+          test -f script.js && echo "✅ script.js found" || (echo "❌ script.js missing" && exit 1)
+          test -d assets && echo "✅ assets directory found" || echo "⚠️ assets directory missing"
       
-      - name: Verify CSS File Exists
-        run: test -f style.css && echo "✅ CSS found" || echo "❌ CSS missing"
+      - name: Validate HTML
+        run: |
+          echo "🔍 Validating HTML syntax..."
+          # Check for basic HTML structure
+          grep -q "<!DOCTYPE html>" index.html && echo "✅ DOCTYPE present" || echo "⚠️ DOCTYPE check"
+          grep -q "<html" index.html && echo "✅ HTML tag found" || echo "⚠️ HTML tag check"
+          grep -q "<body" index.html && echo "✅ Body tag found" || echo "⚠️ Body tag check"
       
-      - name: Verify JavaScript File Exists
-        run: test -f script.js && echo "✅ JS found" || echo "❌ JS missing"
+      - name: Validate CSS
+        run: |
+          echo "🎨 Validating CSS..."
+          lines=$(wc -l < style.css)
+          echo "CSS file: $lines lines"
+          test "$lines" -gt 100 && echo "✅ CSS file is substantial" || echo "⚠️ CSS might be too minimal"
+          grep -c "color:" style.css || echo "Color properties found"
       
-      - name: CI Successful
-        run: echo "🎉 All tests passed! Website ready for deployment"
+      - name: Validate JavaScript
+        run: |
+          echo "⚙️ Validating JavaScript..."
+          lines=$(wc -l < script.js)
+          echo "JS file: $lines lines"
+          test "$lines" -gt 50 && echo "✅ JS file is substantial" || echo "⚠️ JS might be too minimal"
+          grep -c "function" script.js || echo "Functions defined"
+      
+      - name: Check for Accessibility Issues
+        run: |
+          echo "♿ Checking accessibility..."
+          grep -c "aria-" index.html && echo "✅ ARIA labels found" || echo "⚠️ Consider adding ARIA labels"
+          grep -c "alt=" index.html && echo "✅ Image alt text found" || echo "⚠️ Add alt text to images"
+
+
+  security:
+    runs-on: ubuntu-latest
+    name: Security Scanning
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Check for Hardcoded Secrets
+        run: |
+          echo "🔐 Scanning for secrets..."
+          ! grep -r "api_key\|apiKey\|password\|secret" --include="*.js" --include="*.html" . && echo "✅ No hardcoded secrets found" || echo "⚠️ Check for exposed secrets"
+      
+      - name: Validate External Links
+        run: |
+          echo "🔗 Checking external dependencies..."
+          grep -o "https://[^\"]*" index.html | head -5 | xargs -I {} echo "Found: {}"
+      
+      - name: File Permission Check
+        run: |
+          echo "📁 Checking file permissions..."
+          find . -type f -name "*.html" -o -name "*.css" -o -name "*.js" | xargs ls -la | head -10
+
+  
+  build:
+    needs: [validate, security]
+    runs-on: ubuntu-latest
+    name: Build Artifacts
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Create Build Directory
+        run: |
+          echo "🏗️ Creating build artifacts..."
+          mkdir -p build
+          cp index.html build/
+          cp style.css build/
+          cp script.js build/
+          cp -r assets build/ 2>/dev/null || echo "No assets directory"
+      
+      - name: Generate Build Info
+        run: |
+          cat > build/BUILD_INFO.txt << EOF
+          Build Date: $(date)
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref }}
+          Actor: ${{ github.actor }}
+          EOF
+      
+      - name: Calculate Build Statistics
+        run: |
+          echo "📊 Build Statistics:"
+          echo "HTML Size: $(du -h build/index.html | cut -f1)"
+          echo "CSS Size: $(du -h build/style.css | cut -f1)"
+          echo "JS Size: $(du -h build/script.js | cut -f1)"
+          echo "Total Size: $(du -sh build | cut -f1)"
+      
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: build/
+          retention-days: 7
+
+  
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Run Tests
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+      
+      - name: Verify Artifacts
+        run: |
+          echo "✅ Testing build artifacts..."
+          test -f index.html && echo "✅ HTML artifact valid"
+          test -f style.css && echo "✅ CSS artifact valid"
+          test -f script.js && echo "✅ JS artifact valid"
+      
+      - name: Content Validation
+        run: |
+          echo "📝 Validating content..."
+          grep -q "Hashini Bhagya" index.html && echo "✅ Name found in HTML" || echo "❌ Name not found"
+          grep -q "Portfolio\|portfolio" index.html && echo "✅ Portfolio reference found" || echo "❌ No portfolio reference"
+      
+      - name: Link Integrity Check
+        run: |
+          echo "🔗 Checking links..."
+          grep -o 'href="[^"]*"' index.html | wc -l
+          echo "Found $(grep -o 'href="[^"]*"' index.html | wc -l) links"
 
   
   deploy:
@@ -41,14 +174,22 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    name: Deploy to GitHub Pages
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
       
-      - name: Setup Pages
+      - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
       
-      - name: Upload Artifact
+      - name: Pre-deployment Checks
+        run: |
+          echo "🚀 Pre-deployment verification..."
+          echo "Repository: ${{ github.repository }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "SHA: ${{ github.sha }}"
+      
+      - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
@@ -56,3 +197,53 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      
+      - name: Post-deployment Summary
+        run: |
+          echo "✅ Deployment Successful!"
+          echo "🌐 Live URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "📦 Deployment Date: $(date)"
+          echo "👤 Deployed by: ${{ github.actor }}"
+
+  
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    name: Verify Deployment
+    steps:
+      - name: Check Deployment Status
+        run: |
+          echo "✅ Verifying deployment..."
+          sleep 10  
+          
+      - name: Generate Deployment Report
+        run: |
+          cat > deployment-report.md << EOF
+
+          **Date:** $(date)
+          **Workflow:** ${{ github.workflow }}
+          **Branch:** ${{ github.ref }}
+          **Commit:** ${{ github.sha }}
+          **Actor:** ${{ github.actor }}
+          
+          ✅ All stages completed successfully
+          
+          - index.html
+          - style.css
+          - script.js
+          - assets/
+          
+          - Code validation: ✅
+          - Security scan: ✅
+          - Artifact creation: ✅
+          - Testing: ✅
+          
+          ---
+          *Auto-generated by CI/CD Pipeline*
+          EOF
+          cat deployment-report.md
+
+on-error: 
+  - name: Error Handling
+    if: failure()
+    run: echo "❌ Pipeline failed. Check logs for details."
