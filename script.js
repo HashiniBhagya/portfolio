@@ -97,19 +97,6 @@ window.addEventListener("scroll", () => {
     animateCounters();
 });
 
-const contactForm = document.getElementById("contactForm");
-const formMessage = document.getElementById("formMessage");
-
-contactForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    formMessage.textContent = "✨ Message sent! I'll get back to you soon.";
-    formMessage.style.color = "#10b981";
-    contactForm.reset();
-    setTimeout(() => {
-        formMessage.textContent = "";
-    }, 3000);
-});
-
 function createParticles() {
     const container = document.querySelector(".particles-container");
     for (let i = 0; i < 50; i++) {
@@ -263,3 +250,28 @@ document.querySelectorAll(".logo-item").forEach(item => {
 
 console.log("🚀 Portfolio loaded successfully!");
 console.log("👩‍💻 Built with ❤️ by Hashini Bhagya");
+
+window.addEventListener('load', function() {
+    if (window.location.hash === '#contact') {
+        const form = document.querySelector('.contact-form');
+        if (form) {
+            const messageDiv = document.createElement('p');
+            messageDiv.style.color = '#10b981';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.marginTop = '1rem';
+            messageDiv.style.fontWeight = '600';
+            messageDiv.style.padding = '0.8rem';
+            messageDiv.style.background = 'rgba(16, 185, 129, 0.1)';
+            messageDiv.style.borderRadius = '8px';
+            messageDiv.style.border = '1px solid #10b981';
+            messageDiv.textContent = '✅ Message sent successfully! I\'ll get back to you soon.';
+            form.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 8000);
+        }
+    }
+});
